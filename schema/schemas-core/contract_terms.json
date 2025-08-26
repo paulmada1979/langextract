@@ -1,0 +1,17 @@
+{
+  "$id": "contract_terms",
+  "version": "1.0.0",
+  "description": "Key terms of a commercial contract.",
+  "required": ["parties"],
+  "fields": {
+    "parties": {"type":"list","items":{"type":"string"}},
+    "effective_date": {"type":"string"},
+    "term": {"type":"string"},
+    "renewal": {"type":"string"},
+    "payment_terms": {"type":"string"},
+    "termination_clause": {"type":"string"},
+    "governing_law": {"type":"string"},
+    "signatures": {"type":"list","items":{"type":"string"}}
+  },
+  "spans": ["payment_terms","termination_clause"]
+}

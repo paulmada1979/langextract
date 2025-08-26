@@ -1,0 +1,8 @@
+{
+  "$extend": "product_spec",
+  "version": "1.0.0-retail",
+  "merge": {
+    "fields.channel": {"type":"string","enum":["shopify","amazon","ebay","b2b"]},
+    "fields.barcodes": {"type":"list","items":{"type":"string"}}
+  }
+}

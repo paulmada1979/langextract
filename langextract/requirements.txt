@@ -1,0 +1,7 @@
+Django==4.2.7
+djangorestframework==3.14.0
+openai==0.28.1
+spacy==3.7.2
+pyyaml==6.0.1
+python-dotenv==1.0.0
+gunicorn==21.2.0

@@ -1,0 +1,17 @@
+{
+  "$id": "product_spec",
+  "version": "1.0.0",
+  "description": "Website/Docs product specification.",
+  "required": ["name","description"],
+  "fields": {
+    "product_id":{"type":"string"},
+    "name":{"type":"string"},
+    "description":{"type":"string"},
+    "materials":{"type":"list","items":{"type":"string"}},
+    "dimensions":{"type":"object","fields":{"L":{"type":"number"},"W":{"type":"number"},"H":{"type":"number"},"unit":{"type":"string"}}},
+    "finishes":{"type":"list","items":{"type":"string"}},
+    "certifications":{"type":"list","items":{"type":"string"}},
+    "care_instructions":{"type":"list","items":{"type":"string"}},
+    "warranty":{"type":"string"}
+  }
+}

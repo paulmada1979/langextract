@@ -1,0 +1,21 @@
+{
+  "$id": "faq",
+  "version": "1.0.0",
+  "description": "Frequently Asked Questions page (or collection).",
+  "required": ["items"],
+  "fields": {
+    "title": { "type": "string" },
+    "items": {
+      "type": "list",
+      "items": {
+        "type": "object",
+        "fields": {
+          "question": { "type": "string" },
+          "answer": { "type": "string" },
+          "anchor": { "type": "string" }
+        }
+      }
+    }
+  },
+  "spans": ["items"]
+}

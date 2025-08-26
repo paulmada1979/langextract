@@ -1,0 +1,18 @@
+{
+  "$id": "refund_case",
+  "version": "1.0.0",
+  "description": "Refund/RMA extracted from emails or forms.",
+  "required": ["reason_code"],
+  "fields": {
+    "order_id": {"type":"string"},
+    "customer_email": {"type":"string","format":"email"},
+    "items": {"type":"list","items":{"type":"string"}},
+    "reason_code": {"type":"string","enum_ref":"reason_codes.refund"},
+    "refund_amount": {"type":"number"},
+    "currency": {"type":"string","enum_ref":"currencies.iso"},
+    "photos_attached": {"type":"boolean"},
+    "resolution": {"type":"string","enum":["approve","partial","deny"]},
+    "policy_clause_refs": {"type":"list","items":{"type":"string"}}
+  },
+  "spans": ["order_id","reason_code","refund_amount","policy_clause_refs"]
+}

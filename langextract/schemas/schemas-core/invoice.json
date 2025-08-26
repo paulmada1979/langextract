@@ -1,0 +1,31 @@
+{
+  "$id": "invoice",
+  "version": "1.0.0",
+  "description": "General invoice facts.",
+  "required": ["invoice_no","grand_total"],
+  "fields": {
+    "invoice_no": {"type":"string"},
+    "customer": {"type":"string"},
+    "issue_date": {"type":"string"},
+    "due_date": {"type":"string"},
+    "currency": {"type":"string","enum_ref":"currencies.iso"},
+    "subtotal": {"type":"number"},
+    "tax_total": {"type":"number"},
+    "grand_total": {"type":"number"},
+    "status": {"type":"string","enum":["open","paid","overdue"]},
+    "line_items": {
+      "type":"list",
+      "items":{"type":"object",
+        "fields":{
+          "sku":{"type":"string"},
+          "desc":{"type":"string"},
+          "qty":{"type":"number"},
+          "unit_price":{"type":"number"},
+          "tax_code":{"type":"string"}
+        }
+      }
+    },
+    "payment_terms":{"type":"string"}
+  },
+  "spans": ["invoice_no","due_date","grand_total","payment_terms"]
+}

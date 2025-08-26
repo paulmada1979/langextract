@@ -1,0 +1,17 @@
+{
+  "$id": "sop_steps",
+  "version": "1.0.0",
+  "description": "Standard operating procedure.",
+  "required": ["process_name","steps"],
+  "fields": {
+    "process_name":{"type":"string"},
+    "scope":{"type":"string"},
+    "preconditions":{"type":"list","items":{"type":"string"}},
+    "steps":{"type":"list","items":{"type":"object","fields":{"no":{"type":"number"},"text":{"type":"string"}}}},
+    "owners":{"type":"list","items":{"type":"string"}},
+    "tools":{"type":"list","items":{"type":"string"}},
+    "sla":{"type":"string"},
+    "exceptions":{"type":"list","items":{"type":"string"}}
+  },
+  "spans": ["process_name","steps"]
+}

@@ -1,0 +1,26 @@
+schemas:
+  - name: support_case
+    apply:
+      - schemas/core/support_case.json
+  - name: refund_case
+    apply:
+      - schemas/core/refund_case.json
+      - schemas/domains/retail/refund_case.retail.json
+      - schemas/overrides/${COMPANY_ID}/refund_case.overlay.json
+  - name: invoice
+    apply:
+      - schemas/core/invoice.json
+      - schemas/overrides/${COMPANY_ID}/invoice.overlay.json
+  - name: contract_terms
+    apply:
+      - schemas/core/contract_terms.json
+  - name: sop_steps
+    apply:
+      - schemas/core/sop_steps.json
+  - name: price_list
+    apply:
+      - schemas/core/price_list.json
+  - name: product_spec
+    apply:
+      - schemas/core/product_spec.json
+      - schemas/domains/retail/product_spec.retail.json

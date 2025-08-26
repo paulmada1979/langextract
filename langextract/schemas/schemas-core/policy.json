@@ -1,0 +1,23 @@
+{
+  "$id": "policy",
+  "version": "1.0.0",
+  "description": "Generic policy or terms page (shipping, returns, warranty, privacy).",
+  "required": ["title", "clauses"],
+  "fields": {
+    "title": {"type":"string"},
+    "policy_type": {"type":"string","enum":["returns","shipping","warranty","privacy","tos","other"]},
+    "effective_date": {"type":"string"},
+    "jurisdiction": {"type":"string"},
+    "clauses": {
+      "type":"list",
+      "items": {
+        "type":"object",
+        "fields": {
+          "heading":{"type":"string"},
+          "text":{"type":"string"}
+        }
+      }
+    }
+  },
+  "spans": ["policy_type","clauses"]
+}

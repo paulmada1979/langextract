@@ -1,0 +1,22 @@
+{
+  "$id": "support_case",
+  "version": "1.0.0",
+  "description": "Support/inquiry email or ticket.",
+  "required": ["intent"],
+  "fields": {
+    "thread_id": {"type":"string"},
+    "message_id": {"type":"string"},
+    "customer_name": {"type":"string"},
+    "customer_email": {"type":"string","format":"email"},
+    "intent": {"type":"string","enum":["inquiry","complaint","how_to","pricing","warranty"]},
+    "urgency": {"type":"string","enum":["low","normal","high","asap"]},
+    "sentiment": {"type":"string","enum":["negative","neutral","positive"]},
+    "product_sku": {"type":"string"},
+    "order_id": {"type":"string"},
+    "asked_features": {"type":"list","items":{"type":"string"}},
+    "attachments": {"type":"list","items":{"type":"string"}},
+    "policy_clause_refs": {"type":"list","items":{"type":"string"}}
+  },
+  "spans": ["intent","urgency","order_id","policy_clause_refs"],
+  "normalizers": {"order_id":"trim"}
+}

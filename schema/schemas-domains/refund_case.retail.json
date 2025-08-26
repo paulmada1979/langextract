@@ -1,0 +1,8 @@
+{
+  "$extend": "refund_case",
+  "version": "1.0.0-retail",
+  "merge": {
+    "fields.channel": {"type":"string","enum":["shopify","amazon","ebay","manual"]},
+    "fields.return_window_days": {"type":"number"}
+  }
+}

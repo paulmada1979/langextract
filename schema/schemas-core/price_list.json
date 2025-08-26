@@ -1,0 +1,17 @@
+{
+  "$id": "price_list",
+  "version": "1.0.0",
+  "description": "Generic price list.",
+  "required": ["currency","items"],
+  "fields": {
+    "currency":{"type":"string","enum_ref":"currencies.iso"},
+    "valid_from":{"type":"string"},
+    "items":{"type":"list","items":{"type":"object","fields":{
+      "sku":{"type":"string"},
+      "name":{"type":"string"},
+      "tier_prices":{"type":"list","items":{"type":"object","fields":{"min_qty":{"type":"number"},"price":{"type":"number"}}}},
+      "MOQ":{"type":"number"},
+      "lead_time":{"type":"string"}
+    }}}
+  }
+}

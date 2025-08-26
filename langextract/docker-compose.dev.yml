@@ -1,0 +1,15 @@
+version: "3.8"
+
+services:
+  web:
+    build: .
+    ports:
+      - "8001:8000"
+    environment:
+      - DEBUG=True
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}
+    volumes:
+      - .:/app
+    command: python manage.py runserver 0.0.0.0:8000
+    restart: unless-stopped
