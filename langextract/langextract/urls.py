@@ -1,11 +1,11 @@
 """
 URL configuration for langextract project.
 """
-from django.contrib import admin
 from django.urls import path, include
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    # Admin disabled for stateless API service
+    # path('admin/', admin.site.urls),
     path('api/', include('api.urls')),
     path('health/', include('core.urls')),
 ]

@@ -7,6 +7,7 @@ import time
 from typing import Dict, List, Any, Optional
 from .schema_extractor import schema_extractor
 from .openai_client import openai_client
+from .vector_storage import vector_storage
 
 logger = logging.getLogger(__name__)
 
@@ -48,6 +49,9 @@ class DocumentProcessor:
         
         total_processing_time = time.time() - start_time
         
+        # Store embeddings in vector database (if available)
+        storage_results = self._store_embeddings_batch(processed_documents)
+        
         return {
             'status': 'success',
             'processed_documents': processed_documents,
@@ -55,7 +59,8 @@ class DocumentProcessor:
                 'total_chunks': len(documents),
                 'processed_chunks': len(processed_documents),
                 'failed_chunks': failed_chunks,
-                'total_processing_time': round(total_processing_time, 3)
+                'total_processing_time': round(total_processing_time, 3),
+                'storage_results': storage_results
             }
         }
     
@@ -224,6 +229,85 @@ class DocumentProcessor:
             logger.error(f"Text processing test failed: {e}")
         
         return test_results
+    
+    def _store_embeddings_batch(self, processed_documents: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """
+        Store embeddings for processed documents in the vector database.
+        
+        Args:
+            processed_documents: List of processed documents with embeddings
+            
+        Returns:
+            Dictionary with storage results
+        """
+        try:
+            if not processed_documents:
+                return {'status': 'no_documents', 'stored': 0, 'failed': 0}
+            
+            # Check if vector storage is available
+            if not vector_storage.is_available():
+                logger.info("Vector storage not available - skipping embedding storage")
+                return {
+                    'status': 'not_available', 
+                    'message': 'Vector storage not configured',
+                    'stored': 0, 
+                    'failed': 0
+                }
+            
+            # Store embeddings using vector storage service
+            storage_results = vector_storage.store_batch_embeddings(processed_documents)
+            
+            logger.info(f"Stored {storage_results['successful']} embeddings, {storage_results['failed']} failed")
+            return storage_results
+            
+        except Exception as e:
+            logger.error(f"Failed to store embeddings batch: {e}")
+            return {'status': 'error', 'error': str(e), 'stored': 0, 'failed': len(processed_documents)}
+    
+    def search_similar_documents(self, query_text: str, limit: int = 10, 
+                                similarity_threshold: float = 0.7) -> List[Dict[str, Any]]:
+        """
+        Search for similar documents using vector similarity.
+        
+        Args:
+            query_text: Text to search for
+            limit: Maximum number of results
+            similarity_threshold: Minimum similarity score
+            
+        Returns:
+            List of similar documents
+        """
+        try:
+            # Check if vector storage is available
+            if not vector_storage.is_available():
+                logger.warning("Vector storage not available - cannot perform similarity search")
+                return []
+            
+            # Generate embedding for query text
+            query_embedding = self.openai_client.generate_embedding(query_text)
+            if not query_embedding:
+                logger.error("Failed to generate query embedding")
+                return []
+            
+            # Search for similar embeddings
+            similar_documents = vector_storage.search_similar_embeddings(
+                query_embedding, limit, similarity_threshold
+            )
+            
+            logger.info(f"Found {len(similar_documents)} similar documents")
+            return similar_documents
+            
+        except Exception as e:
+            logger.error(f"Failed to search similar documents: {e}")
+            return []
+    
+    def get_vector_storage_stats(self) -> Dict[str, Any]:
+        """Get statistics about the vector storage system."""
+        try:
+            return vector_storage.get_storage_stats()
+        except Exception as e:
+            logger.error(f"Failed to get vector storage stats: {e}")
+            return {'status': 'error', 'error': str(e)}
 
 
 # Global document processor instance
