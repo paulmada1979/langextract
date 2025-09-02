@@ -14,5 +14,5 @@ services:
       - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
     volumes:
       - .:/app
-    command: python manage.py runserver 0.0.0.0:8000
+    command: python manage.py runserver 0.0.0.0:8000 --verbosity 2
     restart: unless-stopped

@@ -27,10 +27,12 @@ INSTALLED_APPS = [
     # 'django.contrib.contenttypes', # Disabled - not needed for API service
     # 'django.contrib.sessions',   # Disabled - not needed for API service
     # 'django.contrib.messages',   # Disabled - not needed for API service
-    # 'django.contrib.staticfiles', # Disabled - not needed for API service
+    'django.contrib.staticfiles', # Enabled for document chat interface
     'rest_framework',
     'api',
     'core',
+    'document_api',
+    'document_processor',
 ]
 
 MIDDLEWARE = [
@@ -40,8 +42,20 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'langextract.urls'
 
-# Templates - Not needed for API service
-TEMPLATES = []
+# Templates - Enabled for document chat interface
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [BASE_DIR / 'templates'],
+        'APP_DIRS': True,
+        'OPTIONS': {
+            'context_processors': [
+                'django.template.context_processors.debug',
+                'django.template.context_processors.request',
+            ],
+        },
+    },
+]
 
 WSGI_APPLICATION = 'langextract.wsgi.application'
 
@@ -75,6 +89,8 @@ REST_FRAMEWORK = {
     ],
     'DEFAULT_PARSER_CLASSES': [
         'rest_framework.parsers.JSONParser',
+        'rest_framework.parsers.MultiPartParser',
+        'rest_framework.parsers.FormParser',
     ],
     'DEFAULT_AUTHENTICATION_CLASSES': [],
     'DEFAULT_PERMISSION_CLASSES': [],

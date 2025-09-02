@@ -1,0 +1,994 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document AI Chat - LangExtract</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      .chat-container {
+        height: calc(100vh - 200px);
+      }
+      .message-bubble {
+        max-width: 80%;
+        word-wrap: break-word;
+      }
+      .typing-indicator {
+        display: none;
+      }
+      .typing-indicator.show {
+        display: block;
+      }
+      .document-card {
+        transition: all 0.3s ease;
+      }
+      .document-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      }
+      .upload-area {
+        border: 2px dashed #cbd5e0;
+        transition: all 0.3s ease;
+      }
+      .upload-area.dragover {
+        border-color: #4299e1;
+        background-color: #ebf8ff;
+      }
+      .progress-bar {
+        transition: width 0.3s ease;
+      }
+    </style>
+  </head>
+  <body class="bg-gray-50">
+    <!-- Header -->
+    <header class="bg-white shadow-sm border-b">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between items-center py-4">
+          <div class="flex items-center">
+            <h1 class="text-2xl font-bold text-gray-900">Document AI Chat</h1>
+            <span
+              class="ml-2 px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full"
+              >LangExtract</span
+            >
+          </div>
+          <div class="flex items-center space-x-4">
+            <button
+              id="uploadBtn"
+              class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center"
+            >
+              <i class="fas fa-upload mr-2"></i>
+              Upload Document
+            </button>
+            <button
+              id="newChatBtn"
+              class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center"
+            >
+              <i class="fas fa-plus mr-2"></i>
+              New Chat
+            </button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        <!-- Sidebar -->
+        <div class="lg:col-span-1">
+          <!-- Document List -->
+          <div class="bg-white rounded-lg shadow-sm p-4 mb-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Documents</h3>
+            <div id="documentList" class="space-y-3">
+              <!-- Documents will be loaded here -->
+            </div>
+          </div>
+
+          <!-- Chat Sessions -->
+          <div class="bg-white rounded-lg shadow-sm p-4">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">
+              Chat Sessions
+            </h3>
+            <div id="chatSessions" class="space-y-2">
+              <!-- Chat sessions will be loaded here -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Main Chat Area -->
+        <div class="lg:col-span-3">
+          <div class="bg-white rounded-lg shadow-sm h-full flex flex-col">
+            <!-- Chat Header -->
+            <div class="p-4 border-b">
+              <div class="flex items-center justify-between">
+                <div>
+                  <h2
+                    id="chatTitle"
+                    class="text-xl font-semibold text-gray-900"
+                  >
+                    Select a document to start chatting
+                  </h2>
+                  <p id="chatSubtitle" class="text-sm text-gray-500">
+                    Upload a document or select an existing one to begin
+                  </p>
+                </div>
+                <div class="flex items-center space-x-2">
+                  <div id="connectionStatus" class="flex items-center text-sm">
+                    <div class="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                    <span class="text-gray-600">Connected</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Chat Messages -->
+            <div
+              id="chatMessages"
+              class="chat-container overflow-y-auto p-4 flex-1"
+            >
+              <div class="text-center text-gray-500 mt-20">
+                <i class="fas fa-comments text-4xl mb-4"></i>
+                <p>
+                  No messages yet. Ask a question about any of your uploaded
+                  documents!
+                </p>
+              </div>
+            </div>
+
+            <!-- Typing Indicator -->
+            <div id="typingIndicator" class="typing-indicator px-4 py-2">
+              <div class="flex items-center text-gray-500">
+                <div class="flex space-x-1 mr-2">
+                  <div
+                    class="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                  ></div>
+                  <div
+                    class="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                    style="animation-delay: 0.1s"
+                  ></div>
+                  <div
+                    class="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                    style="animation-delay: 0.2s"
+                  ></div>
+                </div>
+                <span class="text-sm">AI is typing...</span>
+              </div>
+            </div>
+
+            <!-- Chat Input -->
+            <div class="p-4 border-t">
+              <div class="flex space-x-2">
+                <input
+                  type="text"
+                  id="messageInput"
+                  placeholder="Ask a question about any of your uploaded documents..."
+                  class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  disabled
+                />
+                <button
+                  id="sendBtn"
+                  class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg flex items-center"
+                  disabled
+                >
+                  <i class="fas fa-paper-plane"></i>
+                </button>
+              </div>
+              <div class="mt-2 text-xs text-gray-500">
+                <span id="selectedDocuments">No documents selected</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Upload Modal -->
+    <div
+      id="uploadModal"
+      class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden z-50"
+    >
+      <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="bg-white rounded-lg shadow-xl max-w-md w-full">
+          <div class="p-6">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-lg font-semibold text-gray-900">
+                Upload Document
+              </h3>
+              <button
+                id="closeUploadModal"
+                class="text-gray-400 hover:text-gray-600"
+              >
+                <i class="fas fa-times"></i>
+              </button>
+            </div>
+
+            <div
+              id="uploadArea"
+              class="upload-area border-2 border-dashed rounded-lg p-8 text-center mb-4"
+            >
+              <i
+                class="fas fa-cloud-upload-alt text-4xl text-gray-400 mb-4"
+              ></i>
+              <p class="text-gray-600 mb-2">Drag and drop your document here</p>
+              <p class="text-sm text-gray-500">or</p>
+              <input
+                type="file"
+                id="fileInput"
+                class="hidden"
+                accept=".pdf,.docx,.doc,.md,.txt"
+              />
+              <button
+                id="selectFileBtn"
+                class="mt-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg"
+              >
+                Select File
+              </button>
+            </div>
+
+            <div id="fileInfo" class="hidden mb-4">
+              <div class="bg-gray-50 rounded-lg p-3">
+                <div class="flex items-center justify-between">
+                  <div>
+                    <p id="fileName" class="font-medium text-gray-900"></p>
+                    <p id="fileSize" class="text-sm text-gray-500"></p>
+                  </div>
+                  <button
+                    id="removeFile"
+                    class="text-red-500 hover:text-red-700"
+                  >
+                    <i class="fas fa-times"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div class="mb-4">
+              <label class="block text-sm font-medium text-gray-700 mb-2"
+                >Extraction Schemas</label
+              >
+              <div class="grid grid-cols-2 gap-2">
+                <label class="flex items-center">
+                  <input
+                    type="checkbox"
+                    value="invoice"
+                    checked
+                    class="schema-checkbox mr-2"
+                  />
+                  <span class="text-sm">Invoice</span>
+                </label>
+                <label class="flex items-center">
+                  <input
+                    type="checkbox"
+                    value="support_case"
+                    checked
+                    class="schema-checkbox mr-2"
+                  />
+                  <span class="text-sm">Support Case</span>
+                </label>
+                <label class="flex items-center">
+                  <input
+                    type="checkbox"
+                    value="refund_case"
+                    checked
+                    class="schema-checkbox mr-2"
+                  />
+                  <span class="text-sm">Refund Case</span>
+                </label>
+                <label class="flex items-center">
+                  <input
+                    type="checkbox"
+                    value="contract_terms"
+                    class="schema-checkbox mr-2"
+                  />
+                  <span class="text-sm">Contract</span>
+                </label>
+              </div>
+            </div>
+
+            <div id="uploadProgress" class="hidden mb-4">
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-sm text-gray-600">Uploading...</span>
+                <span id="uploadPercent" class="text-sm text-gray-600">0%</span>
+              </div>
+              <div class="w-full bg-gray-200 rounded-full h-2">
+                <div
+                  id="progressBar"
+                  class="progress-bar bg-blue-600 h-2 rounded-full"
+                  style="width: 0%"
+                ></div>
+              </div>
+            </div>
+
+            <div class="flex justify-end space-x-3">
+              <button
+                id="cancelUpload"
+                class="px-4 py-2 text-gray-600 hover:text-gray-800"
+              >
+                Cancel
+              </button>
+              <button
+                id="uploadFile"
+                class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg"
+                disabled
+              >
+                Upload
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Document Detail Modal -->
+    <div
+      id="documentModal"
+      class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden z-50"
+    >
+      <div class="flex items-center justify-center min-h-screen p-4">
+        <div
+          class="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto"
+        >
+          <div class="p-6">
+            <div class="flex items-center justify-between mb-4">
+              <h3
+                id="documentModalTitle"
+                class="text-lg font-semibold text-gray-900"
+              >
+                Document Details
+              </h3>
+              <button
+                id="closeDocumentModal"
+                class="text-gray-400 hover:text-gray-600"
+              >
+                <i class="fas fa-times"></i>
+              </button>
+            </div>
+
+            <div id="documentDetails" class="space-y-4">
+              <!-- Document details will be loaded here -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      class DocumentChatApp {
+        constructor() {
+          this.currentSessionId = null;
+          this.selectedDocuments = [];
+          this.documents = [];
+          this.chatSessions = [];
+          this.initializeEventListeners();
+          this.loadDocuments();
+          this.loadChatSessions();
+        }
+
+        initializeEventListeners() {
+          // Upload modal
+          document
+            .getElementById("uploadBtn")
+            .addEventListener("click", () => this.showUploadModal());
+          document
+            .getElementById("closeUploadModal")
+            .addEventListener("click", () => this.hideUploadModal());
+          document
+            .getElementById("cancelUpload")
+            .addEventListener("click", () => this.hideUploadModal());
+
+          // File upload
+          document
+            .getElementById("selectFileBtn")
+            .addEventListener("click", () =>
+              document.getElementById("fileInput").click()
+            );
+          document
+            .getElementById("fileInput")
+            .addEventListener("change", (e) => this.handleFileSelect(e));
+          document
+            .getElementById("removeFile")
+            .addEventListener("click", () => this.removeFile());
+          document
+            .getElementById("uploadFile")
+            .addEventListener("click", () => this.uploadFile());
+
+          // Drag and drop
+          const uploadArea = document.getElementById("uploadArea");
+          uploadArea.addEventListener("dragover", (e) =>
+            this.handleDragOver(e)
+          );
+          uploadArea.addEventListener("dragleave", (e) =>
+            this.handleDragLeave(e)
+          );
+          uploadArea.addEventListener("drop", (e) => this.handleDrop(e));
+
+          // Chat
+          document
+            .getElementById("sendBtn")
+            .addEventListener("click", () => this.sendMessage());
+          document
+            .getElementById("messageInput")
+            .addEventListener("keypress", (e) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                this.sendMessage();
+              }
+            });
+
+          // New chat
+          document
+            .getElementById("newChatBtn")
+            .addEventListener("click", () => this.createNewChat());
+
+          // Document modal
+          document
+            .getElementById("closeDocumentModal")
+            .addEventListener("click", () => this.hideDocumentModal());
+        }
+
+        async loadDocuments() {
+          try {
+            const response = await fetch("/api/document/documents/");
+            const data = await response.json();
+
+            if (data.success) {
+              this.documents = data.data;
+              this.renderDocuments();
+            } else {
+              this.showError("Failed to load documents: " + data.message);
+            }
+          } catch (error) {
+            this.showError("Error loading documents: " + error.message);
+          }
+        }
+
+        async loadChatSessions() {
+          try {
+            const response = await fetch("/api/document/chat/sessions/list/");
+            const data = await response.json();
+
+            if (data.success) {
+              this.chatSessions = data.data;
+              this.renderChatSessions();
+            }
+          } catch (error) {
+            console.error("Error loading chat sessions:", error);
+          }
+        }
+
+        renderDocuments() {
+          const container = document.getElementById("documentList");
+          container.innerHTML = "";
+
+          if (this.documents.length === 0) {
+            container.innerHTML =
+              '<p class="text-gray-500 text-sm">No documents uploaded yet</p>';
+            return;
+          }
+
+          this.documents.forEach((doc) => {
+            const docElement = document.createElement("div");
+            docElement.className =
+              "document-card bg-gray-50 rounded-lg p-3 cursor-pointer";
+            docElement.innerHTML = `
+                        <div class="flex items-center justify-between">
+                            <div class="flex-1">
+                                <h4 class="font-medium text-sm text-gray-900 truncate">${
+                                  doc.original_filename
+                                }</h4>
+                                <p class="text-xs text-gray-500">${doc.file_type.toUpperCase()} • ${this.formatFileSize(
+              doc.file_size
+            )}</p>
+                                <div class="flex items-center mt-1">
+                                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                                      doc.processing_status === "completed"
+                                        ? "bg-green-100 text-green-800"
+                                        : doc.processing_status === "processing"
+                                        ? "bg-yellow-100 text-yellow-800"
+                                        : doc.processing_status === "failed"
+                                        ? "bg-red-100 text-red-800"
+                                        : "bg-gray-100 text-gray-800"
+                                    }">
+                                        ${doc.processing_status}
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-1 ml-2">
+                                <button onclick="app.selectDocument('${
+                                  doc.id
+                                }')" class="text-blue-600 hover:text-blue-800">
+                                    <i class="fas fa-comments"></i>
+                                </button>
+                                <button onclick="app.showDocumentDetails('${
+                                  doc.id
+                                }')" class="text-gray-600 hover:text-gray-800">
+                                    <i class="fas fa-info-circle"></i>
+                                </button>
+                            </div>
+                        </div>
+                    `;
+            container.appendChild(docElement);
+          });
+        }
+
+        renderChatSessions() {
+          const container = document.getElementById("chatSessions");
+          container.innerHTML = "";
+
+          if (this.chatSessions.length === 0) {
+            container.innerHTML =
+              '<p class="text-gray-500 text-sm">No chat sessions yet</p>';
+            return;
+          }
+
+          this.chatSessions.forEach((session) => {
+            const sessionElement = document.createElement("div");
+            sessionElement.className =
+              "bg-gray-50 rounded-lg p-2 cursor-pointer hover:bg-gray-100";
+            sessionElement.innerHTML = `
+                        <h4 class="font-medium text-sm text-gray-900 truncate">${
+                          session.session_name
+                        }</h4>
+                        <p class="text-xs text-gray-500">${this.formatDate(
+                          session.last_activity
+                        )}</p>
+                    `;
+            sessionElement.addEventListener("click", () =>
+              this.loadChatSession(session.id)
+            );
+            container.appendChild(sessionElement);
+          });
+        }
+
+        selectDocument(documentId) {
+          if (!this.selectedDocuments.includes(documentId)) {
+            this.selectedDocuments.push(documentId);
+          }
+          this.updateSelectedDocuments();
+          this.enableChat();
+        }
+
+        updateSelectedDocuments() {
+          const selectedText =
+            this.selectedDocuments.length > 0
+              ? `${this.selectedDocuments.length} document(s) selected`
+              : "No documents selected";
+          document.getElementById("selectedDocuments").textContent =
+            selectedText;
+        }
+
+        enableChat() {
+          document.getElementById("messageInput").disabled = false;
+          document.getElementById("sendBtn").disabled = false;
+          document.getElementById("chatTitle").textContent =
+            "Chat with your documents";
+          document.getElementById(
+            "chatSubtitle"
+          ).textContent = `${this.selectedDocuments.length} document(s) selected`;
+        }
+
+        async sendMessage() {
+          const messageInput = document.getElementById("messageInput");
+          const message = messageInput.value.trim();
+
+          if (!message || this.selectedDocuments.length === 0) {
+            return;
+          }
+
+          // Add user message to chat
+          this.addMessage("user", message);
+          messageInput.value = "";
+
+          // Show typing indicator
+          this.showTypingIndicator();
+
+          try {
+            const response = await fetch("/api/document/chat/message/", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                message: message,
+                session_id: this.currentSessionId,
+                document_ids: this.selectedDocuments,
+                include_sources: true,
+              }),
+            });
+
+            const data = await response.json();
+            this.hideTypingIndicator();
+
+            if (data.success) {
+              this.addMessage(
+                "assistant",
+                data.data.message,
+                data.data.sources
+              );
+              this.currentSessionId = data.data.session_id;
+            } else {
+              this.addMessage(
+                "assistant",
+                "Sorry, I encountered an error: " + data.message
+              );
+            }
+          } catch (error) {
+            this.hideTypingIndicator();
+            this.addMessage(
+              "assistant",
+              "Sorry, I encountered an error: " + error.message
+            );
+          }
+        }
+
+        addMessage(type, content, sources = []) {
+          const messagesContainer = document.getElementById("chatMessages");
+
+          // Remove empty state if it exists
+          const emptyState = messagesContainer.querySelector(".text-center");
+          if (emptyState) {
+            emptyState.remove();
+          }
+
+          const messageElement = document.createElement("div");
+          messageElement.className = `mb-4 flex ${
+            type === "user" ? "justify-end" : "justify-start"
+          }`;
+
+          const bubbleClass =
+            type === "user"
+              ? "bg-blue-600 text-white"
+              : "bg-gray-100 text-gray-900";
+
+          let sourcesHtml = "";
+          if (sources && sources.length > 0) {
+            sourcesHtml = `
+                        <div class="mt-2 pt-2 border-t border-gray-200">
+                            <p class="text-xs text-gray-500 mb-1">Sources:</p>
+                            ${sources
+                              .map(
+                                (source) => `
+                                <div class="text-xs text-gray-600 bg-gray-50 p-2 rounded mb-1">
+                                    <strong>Chunk ${
+                                      source.chunk_index
+                                    }:</strong> ${source.content.substring(
+                                  0,
+                                  100
+                                )}...
+                                </div>
+                            `
+                              )
+                              .join("")}
+                        </div>
+                    `;
+          }
+
+          messageElement.innerHTML = `
+                    <div class="message-bubble ${bubbleClass} px-4 py-2 rounded-lg">
+                        <p>${this.escapeHtml(content)}</p>
+                        ${sourcesHtml}
+                    </div>
+                `;
+
+          messagesContainer.appendChild(messageElement);
+          messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        showTypingIndicator() {
+          document.getElementById("typingIndicator").classList.add("show");
+        }
+
+        hideTypingIndicator() {
+          document.getElementById("typingIndicator").classList.remove("show");
+        }
+
+        async createNewChat() {
+          this.selectedDocuments = [];
+          this.currentSessionId = null;
+          this.updateSelectedDocuments();
+          document.getElementById("messageInput").disabled = true;
+          document.getElementById("sendBtn").disabled = true;
+          document.getElementById("chatTitle").textContent =
+            "Select a document to start chatting";
+          document.getElementById("chatSubtitle").textContent =
+            "Upload a document or select an existing one to begin";
+          document.getElementById("chatMessages").innerHTML = `
+                    <div class="text-center text-gray-500 mt-20">
+                        <i class="fas fa-comments text-4xl mb-4"></i>
+                        <p>No messages yet. Ask a question about any of your uploaded documents!</p>
+                    </div>
+                `;
+        }
+
+        showUploadModal() {
+          document.getElementById("uploadModal").classList.remove("hidden");
+        }
+
+        hideUploadModal() {
+          document.getElementById("uploadModal").classList.add("hidden");
+          this.resetUploadForm();
+        }
+
+        resetUploadForm() {
+          document.getElementById("fileInput").value = "";
+          document.getElementById("fileInfo").classList.add("hidden");
+          document.getElementById("uploadProgress").classList.add("hidden");
+          document.getElementById("uploadFile").disabled = true;
+          document.getElementById("uploadArea").classList.remove("dragover");
+        }
+
+        handleFileSelect(event) {
+          const file = event.target.files[0];
+          if (file) {
+            this.setSelectedFile(file);
+          }
+        }
+
+        handleDragOver(event) {
+          event.preventDefault();
+          document.getElementById("uploadArea").classList.add("dragover");
+        }
+
+        handleDragLeave(event) {
+          event.preventDefault();
+          document.getElementById("uploadArea").classList.remove("dragover");
+        }
+
+        handleDrop(event) {
+          event.preventDefault();
+          document.getElementById("uploadArea").classList.remove("dragover");
+
+          const files = event.dataTransfer.files;
+          if (files.length > 0) {
+            this.setSelectedFile(files[0]);
+          }
+        }
+
+        setSelectedFile(file) {
+          document.getElementById("fileName").textContent = file.name;
+          document.getElementById("fileSize").textContent = this.formatFileSize(
+            file.size
+          );
+          document.getElementById("fileInfo").classList.remove("hidden");
+          document.getElementById("uploadFile").disabled = false;
+        }
+
+        removeFile() {
+          document.getElementById("fileInput").value = "";
+          document.getElementById("fileInfo").classList.add("hidden");
+          document.getElementById("uploadFile").disabled = true;
+        }
+
+        async uploadFile() {
+          const fileInput = document.getElementById("fileInput");
+          const file = fileInput.files[0];
+
+          if (!file) {
+            this.showError("Please select a file to upload");
+            return;
+          }
+
+          const schemas = Array.from(
+            document.querySelectorAll(".schema-checkbox:checked")
+          ).map((cb) => cb.value);
+
+          if (schemas.length === 0) {
+            this.showError("Please select at least one extraction schema");
+            return;
+          }
+
+          const formData = new FormData();
+          formData.append("file", file);
+          formData.append("schemas", JSON.stringify(schemas));
+
+          document.getElementById("uploadProgress").classList.remove("hidden");
+          document.getElementById("uploadFile").disabled = true;
+
+          try {
+            const response = await fetch("/api/document/documents/upload/", {
+              method: "POST",
+              body: formData,
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+              this.showSuccess("Document uploaded and processed successfully!");
+              this.hideUploadModal();
+              this.loadDocuments();
+
+              // Auto-select the uploaded document
+              if (data.data && data.data.document_id) {
+                this.selectDocument(data.data.document_id);
+              }
+            } else {
+              this.showError("Upload failed: " + data.message);
+            }
+          } catch (error) {
+            this.showError("Upload failed: " + error.message);
+          } finally {
+            document.getElementById("uploadProgress").classList.add("hidden");
+            document.getElementById("uploadFile").disabled = false;
+          }
+        }
+
+        async showDocumentDetails(documentId) {
+          try {
+            const response = await fetch(
+              `/api/document/documents/${documentId}/`
+            );
+            const data = await response.json();
+
+            if (data.success) {
+              const doc = data.data;
+              document.getElementById("documentModalTitle").textContent =
+                doc.original_filename;
+
+              const detailsHtml = `
+                            <div class="grid grid-cols-2 gap-4 mb-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700">File Type</label>
+                                    <p class="text-sm text-gray-900">${doc.file_type.toUpperCase()}</p>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700">File Size</label>
+                                    <p class="text-sm text-gray-900">${this.formatFileSize(
+                                      doc.file_size
+                                    )}</p>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700">Status</label>
+                                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                                      doc.processing_status === "completed"
+                                        ? "bg-green-100 text-green-800"
+                                        : doc.processing_status === "processing"
+                                        ? "bg-yellow-100 text-yellow-800"
+                                        : doc.processing_status === "failed"
+                                        ? "bg-red-100 text-red-800"
+                                        : "bg-gray-100 text-gray-800"
+                                    }">
+                                        ${doc.processing_status}
+                                    </span>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700">Uploaded</label>
+                                    <p class="text-sm text-gray-900">${this.formatDate(
+                                      doc.created_at
+                                    )}</p>
+                                </div>
+                            </div>
+                            
+                            ${
+                              doc.stats
+                                ? `
+                                <div class="mb-4">
+                                    <h4 class="text-md font-medium text-gray-900 mb-2">Statistics</h4>
+                                    <div class="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700">Total Chunks</label>
+                                            <p class="text-sm text-gray-900">${
+                                              doc.stats.total_chunks || 0
+                                            }</p>
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700">Content Length</label>
+                                            <p class="text-sm text-gray-900">${this.formatFileSize(
+                                              doc.stats.total_content_length ||
+                                                0
+                                            )}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            `
+                                : ""
+                            }
+                            
+                            ${
+                              doc.chunks && doc.chunks.length > 0
+                                ? `
+                                <div>
+                                    <h4 class="text-md font-medium text-gray-900 mb-2">Document Chunks (${
+                                      doc.chunks.length
+                                    })</h4>
+                                    <div class="space-y-2 max-h-60 overflow-y-auto">
+                                        ${doc.chunks
+                                          .slice(0, 10)
+                                          .map(
+                                            (chunk) => `
+                                            <div class="bg-gray-50 p-3 rounded-lg">
+                                                <div class="flex items-center justify-between mb-1">
+                                                    <span class="text-sm font-medium text-gray-900">Chunk ${
+                                                      chunk.chunk_index
+                                                    }</span>
+                                                    <span class="text-xs text-gray-500">${
+                                                      chunk.content_type
+                                                    }</span>
+                                                </div>
+                                                <p class="text-sm text-gray-600">${chunk.content.substring(
+                                                  0,
+                                                  150
+                                                )}${
+                                              chunk.content.length > 150
+                                                ? "..."
+                                                : ""
+                                            }</p>
+                                            </div>
+                                        `
+                                          )
+                                          .join("")}
+                                        ${
+                                          doc.chunks.length > 10
+                                            ? `<p class="text-sm text-gray-500 text-center">... and ${
+                                                doc.chunks.length - 10
+                                              } more chunks</p>`
+                                            : ""
+                                        }
+                                    </div>
+                                </div>
+                            `
+                                : ""
+                            }
+                        `;
+
+              document.getElementById("documentDetails").innerHTML =
+                detailsHtml;
+              document
+                .getElementById("documentModal")
+                .classList.remove("hidden");
+            } else {
+              this.showError(
+                "Failed to load document details: " + data.message
+              );
+            }
+          } catch (error) {
+            this.showError("Error loading document details: " + error.message);
+          }
+        }
+
+        hideDocumentModal() {
+          document.getElementById("documentModal").classList.add("hidden");
+        }
+
+        formatFileSize(bytes) {
+          if (bytes === 0) return "0 Bytes";
+          const k = 1024;
+          const sizes = ["Bytes", "KB", "MB", "GB"];
+          const i = Math.floor(Math.log(bytes) / Math.log(k));
+          return (
+            parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i]
+          );
+        }
+
+        formatDate(dateString) {
+          const date = new Date(dateString);
+          return date.toLocaleDateString() + " " + date.toLocaleTimeString();
+        }
+
+        escapeHtml(text) {
+          const div = document.createElement("div");
+          div.textContent = text;
+          return div.innerHTML;
+        }
+
+        showError(message) {
+          // Simple error display - you can enhance this with a proper notification system
+          alert("Error: " + message);
+        }
+
+        showSuccess(message) {
+          // Simple success display - you can enhance this with a proper notification system
+          alert("Success: " + message);
+        }
+      }
+
+      // Initialize the app
+      const app = new DocumentChatApp();
+    </script>
+  </body>
+</html>

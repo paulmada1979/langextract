@@ -130,6 +130,49 @@ class OpenAIClient:
             'rate_limit_delay': self.rate_limit_delay
         }
     
+    def is_available(self) -> bool:
+        """Check if the OpenAI client is available and configured."""
+        return self.client is not None and self.api_key is not None
+    
+    def generate_completion(self, prompt: str, max_tokens: int = 500, temperature: float = 0.3, model: str = "gpt-3.5-turbo") -> Optional[str]:
+        """
+        Generate a text completion using OpenAI's chat completion API.
+        
+        Args:
+            prompt: The prompt to send to the model
+            max_tokens: Maximum tokens in the response
+            temperature: Sampling temperature (0.0 to 1.0)
+            model: Model to use for completion
+            
+        Returns:
+            Generated text response or None if failed
+        """
+        if not self.client:
+            logger.warning("OpenAI client not available - cannot generate completion")
+            return None
+        
+        try:
+            # Add delay for rate limiting
+            time.sleep(self.rate_limit_delay)
+            
+            response = self.client.ChatCompletion.create(
+                model=model,
+                messages=[
+                    {"role": "system", "content": "You are a helpful AI assistant that answers questions based on provided document context. Be concise, accurate, and helpful."},
+                    {"role": "user", "content": prompt}
+                ],
+                max_tokens=max_tokens,
+                temperature=temperature
+            )
+            
+            completion = response['choices'][0]['message']['content'].strip()
+            logger.debug(f"Generated completion for prompt (length: {len(prompt)})")
+            return completion
+            
+        except Exception as e:
+            logger.error(f"Error generating completion: {e}")
+            return None
+    
     def test_connection(self) -> bool:
         """Test the OpenAI API connection."""
         if not self.client:

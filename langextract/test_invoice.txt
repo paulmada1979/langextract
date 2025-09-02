@@ -1,0 +1,28 @@
+INVOICE
+
+Invoice Number: INV-2025-001
+Date: September 2, 2025
+Due Date: September 30, 2025
+
+Bill To:
+John Smith
+123 Main Street
+New York, NY 10001
+
+Description:
+- Web Development Services: $2,500.00
+- Design Services: $1,200.00
+- Consulting: $800.00
+
+Subtotal: $4,500.00
+Tax (8.5%): $382.50
+Total Amount: $4,882.50
+
+Payment Terms: Net 30
+Payment Method: Bank Transfer
+
+Thank you for your business!
+
+Contact Information:
+Email: billing@company.com
+Phone: (555) 123-4567

@@ -1,0 +1,22 @@
+# Document Processing API Requirements
+# Additional dependencies for the new document processing module
+
+# Document processing
+docling>=1.0.0
+aiofiles>=23.0.0
+
+# Enhanced async support
+asyncio-throttle>=1.0.0
+
+# File type detection
+python-magic>=0.4.27
+
+# Enhanced text processing
+nltk>=3.8.1
+spacy>=3.7.0
+
+# Performance monitoring
+psutil>=5.9.0
+
+# Enhanced logging
+structlog>=23.0.0

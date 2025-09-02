@@ -79,6 +79,36 @@ BEGIN
 END;
 $$;
 
+-- Create the match_documents function (alias for compatibility)
+CREATE OR REPLACE FUNCTION match_documents(
+    query_embedding vector(1536),
+    match_threshold float DEFAULT 0.7,
+    match_count int DEFAULT 10
+)
+RETURNS TABLE (
+    id UUID,
+    chunk_id VARCHAR(255),
+    document_id VARCHAR(255),
+    content TEXT,
+    similarity float
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT
+        e.id,
+        e.chunk_id,
+        e.document_id,
+        e.content,
+        1 - (e.embedding <=> query_embedding) as similarity
+    FROM embeddings e
+    WHERE 1 - (e.embedding <=> query_embedding) > match_threshold
+    ORDER BY e.embedding <=> query_embedding
+    LIMIT match_count;
+END;
+$$;
+
 -- Create function to update the updated_at timestamp (only if it doesn't exist)
 CREATE OR REPLACE FUNCTION update_updated_at_column()
 RETURNS TRIGGER AS $$

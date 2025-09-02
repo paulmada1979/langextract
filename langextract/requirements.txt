@@ -8,3 +8,8 @@ gunicorn==21.2.0
 supabase==2.0.2
 pgvector==0.2.3
 psycopg2-binary==2.9.7
+
+# Document processing dependencies
+aiofiles>=23.0.0
+docling>=1.0.0
+python-magic>=0.4.27
