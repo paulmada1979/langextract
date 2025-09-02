@@ -193,8 +193,8 @@ class VectorStorage:
         record = {
             'chunk_id': document_data.get('chunk_id'),
             'document_id': document_data.get('document_id'),
-            'original_text': document_data.get('original_text', ''),
-            'text_embedding': text_embedding,
+            'content': document_data.get('original_text', ''),
+            'embedding': text_embedding,
             'all_embeddings': json.dumps(embeddings),  # Store all embeddings as JSON
             'extracted_data': json.dumps(document_data.get('extracted_data', {})),
             'metadata': json.dumps(document_data.get('metadata', {})),

@@ -47,7 +47,7 @@ class ProcessingResult:
     """Result of document processing."""
     chunk_id: str
     document_id: str
-    original_text: str
+    content: str
     extracted_data: Dict[str, Any]
     embeddings: Dict[str, Any]
     metadata: Dict[str, Any]
@@ -355,7 +355,7 @@ class LangExtractComponent(CustomComponent):
                 processed_results.append(ProcessingResult(
                     chunk_id=doc_result['chunk_id'],
                     document_id=doc_result['document_id'],
-                    original_text=doc_result['original_text'],
+                    content=doc_result['original_text'],
                     extracted_data=doc_result['extracted_data'],
                     embeddings=doc_result['embeddings'],
                     metadata=doc_result['metadata'],
@@ -396,7 +396,7 @@ class LangExtractComponent(CustomComponent):
             result_data.append({
                 "chunk_id": result.chunk_id,
                 "document_id": result.document_id,
-                "original_text": result.original_text,
+                "content": result.content,
                 "extracted_data": result.extracted_data,
                 "embeddings": result.embeddings,
                 "metadata": result.metadata,
@@ -452,7 +452,7 @@ def process_dockling_chunks(
         processed_results.append(ProcessingResult(
             chunk_id=doc_result['chunk_id'],
             document_id=doc_result['document_id'],
-            original_text=doc_result['original_text'],
+            content=doc_result['original_text'],
             extracted_data=doc_result['extracted_data'],
             embeddings=doc_result['embeddings'],
             metadata=doc_result['metadata'],

@@ -9,8 +9,8 @@ CREATE TABLE IF NOT EXISTS embeddings (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     chunk_id VARCHAR(255) NOT NULL,
     document_id VARCHAR(255) NOT NULL,
-    original_text TEXT NOT NULL,
-    text_embedding vector(1536), -- OpenAI text-embedding-3-small dimension
+    content TEXT NOT NULL,
+    embedding vector(1536), -- OpenAI text-embedding-3-small dimension
     all_embeddings JSONB, -- Store all embeddings (text, schemas, key_phrases)
     extracted_data JSONB, -- Store extracted structured data
     metadata JSONB, -- Store processing metadata
@@ -37,7 +37,7 @@ RETURNS TABLE (
     id UUID,
     chunk_id VARCHAR(255),
     document_id VARCHAR(255),
-    original_text TEXT,
+    content TEXT,
     similarity float
 )
 LANGUAGE plpgsql
@@ -48,11 +48,11 @@ BEGIN
         e.id,
         e.chunk_id,
         e.document_id,
-        e.original_text,
-        1 - (e.text_embedding <=> query_embedding) as similarity
+        e.content,
+        1 - (e.embedding <=> query_embedding) as similarity
     FROM embeddings e
-    WHERE 1 - (e.text_embedding <=> query_embedding) > match_threshold
-    ORDER BY e.text_embedding <=> query_embedding
+    WHERE 1 - (e.embedding <=> query_embedding) > match_threshold
+    ORDER BY e.embedding <=> query_embedding
     LIMIT match_count;
 END;
 $$;
@@ -74,7 +74,7 @@ CREATE TRIGGER update_embeddings_updated_at
 
 -- Add comments for documentation
 COMMENT ON TABLE embeddings IS 'Table for storing document embeddings with vector similarity search support';
-COMMENT ON COLUMN embeddings.text_embedding IS 'Primary embedding vector for similarity search (OpenAI text-embedding-3-small)';
+COMMENT ON COLUMN embeddings.embedding IS 'Primary embedding vector for similarity search (OpenAI text-embedding-3-small)';
 COMMENT ON COLUMN embeddings.all_embeddings IS 'JSON containing all generated embeddings (text, schemas, key_phrases)';
 COMMENT ON COLUMN embeddings.extracted_data IS 'JSON containing extracted structured data from schemas';
 COMMENT ON COLUMN embeddings.metadata IS 'JSON containing processing metadata and timestamps';

@@ -5,6 +5,7 @@ This document explains how to integrate Supabase vector database storage with yo
 ## Overview
 
 The vector storage integration allows you to:
+
 - Store document embeddings in Supabase with pgvector support
 - Perform similarity searches using vector embeddings
 - Maintain all your existing relational data without interference
@@ -25,6 +26,7 @@ pip install -r requirements.txt
 ```
 
 The following new dependencies have been added:
+
 - `supabase==2.0.2` - Supabase Python client
 - `pgvector==0.2.3` - PostgreSQL vector extension support
 - `psycopg2-binary==2.9.7` - PostgreSQL adapter
@@ -56,6 +58,7 @@ python apply_migration.py
 ```
 
 This will create:
+
 - `embeddings` table with vector support
 - Indexes for optimal performance
 - Similarity search function
@@ -70,8 +73,8 @@ CREATE TABLE embeddings (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     chunk_id VARCHAR(255) NOT NULL,
     document_id VARCHAR(255) NOT NULL,
-    original_text TEXT NOT NULL,
-    text_embedding vector(1536), -- OpenAI text-embedding-3-small
+    content TEXT NOT NULL,
+    embedding vector(1536), -- OpenAI text-embedding-3-small
     all_embeddings JSONB, -- All generated embeddings
     extracted_data JSONB, -- Extracted structured data
     metadata JSONB, -- Processing metadata
@@ -112,14 +115,14 @@ print(f"Stored {storage_results['successful']} embeddings")
 # Search for similar documents
 query_text = "artificial intelligence and machine learning"
 similar_docs = document_processor.search_similar_documents(
-    query_text, 
-    limit=10, 
+    query_text,
+    limit=10,
     similarity_threshold=0.7
 )
 
 for doc in similar_docs:
     print(f"Similarity: {doc['similarity']:.3f}")
-    print(f"Text: {doc['original_text'][:100]}...")
+    print(f"Text: {doc['content'][:100]}...")
     print("---")
 ```
 
@@ -144,42 +147,49 @@ success = vector_storage.delete_embedding('embedding-uuid')
 New API endpoints have been added for vector operations:
 
 ### POST `/api/extract/`
+
 Process documents and store embeddings automatically.
 
 **Request:**
+
 ```json
 {
-    "documents": [
-        {
-            "chunk_id": "chunk_1",
-            "document_id": "doc_1",
-            "text": "Document text..."
-        }
-    ],
-    "schemas": ["contract_terms"],
-    "options": {"extract_entities": true}
+  "documents": [
+    {
+      "chunk_id": "chunk_1",
+      "document_id": "doc_1",
+      "text": "Document text..."
+    }
+  ],
+  "schemas": ["contract_terms"],
+  "options": { "extract_entities": true }
 }
 ```
 
 ### POST `/api/search/`
+
 Search for similar documents using vector similarity.
 
 **Request:**
+
 ```json
 {
-    "query_text": "search query",
-    "limit": 10,
-    "similarity_threshold": 0.7
+  "query_text": "search query",
+  "limit": 10,
+  "similarity_threshold": 0.7
 }
 ```
 
 ### GET `/api/embeddings/{id}/`
+
 Retrieve a specific embedding by ID.
 
 ### DELETE `/api/embeddings/{id}/delete/`
+
 Delete a specific embedding by ID.
 
 ### GET `/api/vector-stats/`
+
 Get vector storage statistics.
 
 ## Testing
@@ -191,6 +201,7 @@ python test_vector_storage.py
 ```
 
 This will test:
+
 - System health
 - Vector storage connection
 - Document processing and storage
@@ -200,16 +211,19 @@ This will test:
 ## Performance Considerations
 
 ### Indexing
-- The `text_embedding` column is indexed for fast similarity searches
+
+- The `embedding` column is indexed for fast similarity searches
 - JSONB columns are indexed with GIN for efficient querying
 - Consider adding additional indexes based on your query patterns
 
 ### Vector Dimensions
+
 - Default: 1536 dimensions (OpenAI text-embedding-3-small)
 - Adjust the migration if using different embedding models
 - Higher dimensions = more storage but potentially better accuracy
 
 ### Batch Operations
+
 - Use batch storage for multiple documents
 - The system automatically handles batch operations efficiently
 
@@ -218,12 +232,14 @@ This will test:
 ### Common Issues
 
 1. **pgvector extension not enabled**
+
    ```bash
    # Enable in Supabase SQL editor
    CREATE EXTENSION IF NOT EXISTS vector;
    ```
 
 2. **Connection errors**
+
    - Verify your Supabase URL and keys
    - Check network connectivity
    - Ensure your IP is whitelisted if using RLS
@@ -280,6 +296,7 @@ The vector storage is designed to scale:
 ## Support
 
 For issues or questions:
+
 1. Check the troubleshooting section
 2. Review Supabase documentation
 3. Check the test scripts for examples

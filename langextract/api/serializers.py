@@ -78,7 +78,7 @@ class ProcessedDocumentSerializer(serializers.Serializer):
     """Serializer for processed documents."""
     chunk_id = serializers.CharField()
     document_id = serializers.CharField()
-    original_text = serializers.CharField()
+    content = serializers.CharField()
     extracted_data = ExtractedDataSerializer()
     embeddings = EmbeddingSerializer()
     metadata = ProcessedDocumentMetadataSerializer()

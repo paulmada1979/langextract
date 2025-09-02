@@ -136,7 +136,7 @@ Process document chunks and generate embeddings.
     {
       "chunk_id": "chunk_001",
       "document_id": "abc123",
-      "original_text": "chunk text content here",
+      "content": "chunk text content here",
       "extracted_data": {
         "entities": [...],
         "categories": [...],

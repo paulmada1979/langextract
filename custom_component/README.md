@@ -174,7 +174,7 @@ The component returns structured data with the following format:
 class ProcessingResult:
     chunk_id: str                    # Unique chunk identifier
     document_id: str                 # Document identifier
-    original_text: str               # Original text content
+    content: str               # Original text content
     extracted_data: Dict[str, Any]  # Extracted entities, categories, etc.
     embeddings: Dict[str, Any]      # Text embeddings and vectors
     metadata: Dict[str, Any]        # Processing metadata

@@ -48,7 +48,7 @@ class ProcessingResult:
     """Result of document processing."""
     chunk_id: str
     document_id: str
-    original_text: str
+    content: str
     extracted_data: Dict[str, Any]
     embeddings: Dict[str, Any]
     metadata: Dict[str, Any]
@@ -244,7 +244,7 @@ class LangExtractComponent:
             processed_results.append(ProcessingResult(
                 chunk_id=doc_result['chunk_id'],
                 document_id=doc_result['document_id'],
-                original_text=doc_result['original_text'],
+                content=doc_result['original_text'],
                 extracted_data=doc_result['extracted_data'],
                 embeddings=doc_result['embeddings'],
                 metadata=doc_result['metadata'],

@@ -87,7 +87,7 @@ Based on analysis of `./schema/` folder, the system supports:
     {
       "chunk_id": "chunk_001",
       "document_id": "abc123",
-      "original_text": "original chunk text",
+      "content": "original chunk text",
       "extracted_data": {
         "entities": [
           { "text": "John Doe", "label": "PERSON", "confidence": 0.95 },

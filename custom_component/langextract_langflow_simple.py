@@ -265,7 +265,7 @@ class LangExtractComponent(CustomComponent):
             result_data.append({
                 "chunk_id": doc_result.get('chunk_id', ''),
                 "document_id": doc_result.get('document_id', ''),
-                "original_text": doc_result.get('original_text', ''),
+                "content": doc_result.get('original_text', ''),
                 "extracted_data": doc_result.get('extracted_data', {}),
                 "embeddings": doc_result.get('embeddings', {}),
                 "metadata": doc_result.get('metadata', {}),
