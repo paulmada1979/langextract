@@ -28,6 +28,7 @@ INSTALLED_APPS = [
     # 'django.contrib.sessions',   # Disabled - not needed for API service
     # 'django.contrib.messages',   # Disabled - not needed for API service
     'django.contrib.staticfiles', # Enabled for document chat interface
+    'corsheaders',  # CORS support
     'rest_framework',
     'api',
     'core',
@@ -36,6 +37,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',  # CORS middleware should be at the top
     'core.middleware.StatelessMiddleware',
     'django.middleware.common.CommonMiddleware',
 ]
@@ -135,6 +137,32 @@ LOGGING = {
         'level': 'INFO',
     },
 }
+
+# CORS Configuration
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+    "https://aididmychat.ai-did-it.com",
+]
+
+# Allow all origins in development (optional - for testing)
+CORS_ALLOW_ALL_ORIGINS = os.getenv('CORS_ALLOW_ALL_ORIGINS', 'False').lower() == 'true'
+
+# CORS settings for credentials
+CORS_ALLOW_CREDENTIALS = True
+
+# Allowed headers
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+    'x-user-id',  # Custom header for user identification
+]
 
 # Initialize vector storage service
 try:
