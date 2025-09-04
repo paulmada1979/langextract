@@ -88,14 +88,19 @@ class DocumentProcessor:
             return None
     
     async def process_document(self, file_data: bytes, filename: str, 
-                             user_id: str, schemas: List[str] = None) -> Dict[str, Any]:
+                             user_id: str, schemas: List[str] = None, 
+                             enable_docling: bool = True, 
+                             processing_options: Dict[str, Any] = None) -> Dict[str, Any]:
         """
         Process a document through the complete pipeline.
         
         Args:
             file_data: Raw file data
             filename: Original filename
+            user_id: User ID for the document
             schemas: List of schemas to apply for metadata extraction
+            enable_docling: Whether to enable docling for PDF processing
+            processing_options: Additional processing options
             
         Returns:
             Dictionary with processing results
@@ -117,7 +122,7 @@ class DocumentProcessor:
             
             # Extract content using docling
             logger.info(f"Extracting content from {filename} using docling")
-            extracted_content = await self._extract_content(file_path, file_info['file_type'])
+            extracted_content = await self._extract_content(file_path, file_info['file_type'], enable_docling)
             
             # Chunk the document
             logger.info(f"Chunking document {document_id}")
@@ -228,14 +233,33 @@ class DocumentProcessor:
             logger.error(f"Failed to create document record: {e}")
             raise
     
-    async def _extract_content(self, file_path: str, file_type: str) -> Dict[str, Any]:
-        """Extract content from document using docling."""
-        if not DOCLING_AVAILABLE or not self.converter:
+    async def _extract_content(self, file_path: str, file_type: str, enable_docling: bool = True) -> Dict[str, Any]:
+        """Extract content from document using docling by default for all supported formats."""
+        logger.info(f"Extract content called with enable_docling={enable_docling}, file_type={file_type}, DOCLING_AVAILABLE={DOCLING_AVAILABLE}, converter={self.converter is not None}")
+        
+        # Supported file types for docling processing
+        supported_docling_types = {'pdf', 'docx', 'doc', 'txt', 'md'}
+        
+        # Check if docling should be used - enabled by default for supported file types
+        should_use_docling = enable_docling and file_type.lower() in supported_docling_types and DOCLING_AVAILABLE
+        
+        # If docling is enabled but converter is not available, try to initialize it
+        if should_use_docling and not self.converter:
+            logger.info("Docling enabled but converter not available, attempting to initialize...")
+            self.converter = self._init_docling_converter()
+            if not self.converter:
+                logger.warning("Failed to initialize docling converter, falling back to text extraction")
+                should_use_docling = False
+        
+        logger.info(f"Should use docling: {should_use_docling}")
+        
+        if not should_use_docling:
             # Fallback to simple text extraction
-            logger.warning("Docling not available, using fallback text extraction")
+            logger.warning(f"Docling not enabled or not available for {file_type}, using fallback text extraction")
             return self._fallback_text_extraction(file_path, file_type)
             
         try:
+            logger.info(f"Using docling to extract content from {file_path} (file_type: {file_type})")
             # Run docling conversion in thread pool to avoid blocking
             loop = asyncio.get_event_loop()
             result = await loop.run_in_executor(
@@ -245,7 +269,7 @@ class DocumentProcessor:
             # Process the result
             content = self._process_docling_result(result)
             
-            logger.info(f"Extracted content from {file_path}: {len(content.get('text', ''))} chars")
+            logger.info(f"Successfully extracted content from {file_path}: {len(content.get('text', ''))} chars")
             return content
             
         except Exception as e:
@@ -276,10 +300,14 @@ class DocumentProcessor:
                 with open(file_path, 'r', encoding='utf-8') as f:
                     content['text'] = f.read()
             else:
-                # For other file types, we'll need to implement basic extraction
-                # For now, just return empty content
-                content['text'] = f"[File type {file_type} not supported without docling]"
-                logger.warning(f"File type {file_type} requires docling for proper extraction")
+                # For PDF, DOCX, DOC files, we need docling for proper extraction
+                if file_type.lower() in ['pdf', 'docx', 'doc']:
+                    content['text'] = f"[File type {file_type} not supported without docling]"
+                    logger.warning(f"{file_type.upper()} file requires docling for proper extraction. Docling is enabled by default but may not be available.")
+                else:
+                    # For other file types, we'll need to implement basic extraction
+                    content['text'] = f"[File type {file_type} not supported without docling]"
+                    logger.warning(f"File type {file_type} requires docling for proper extraction")
                 
         except Exception as e:
             logger.error(f"Failed to extract text from {file_path}: {e}")

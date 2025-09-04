@@ -55,6 +55,8 @@ class DocumentAPIView:
             file = serializer.validated_data['file']
             user_id = serializer.validated_data['userId']
             schemas = serializer.validated_data.get('schemas', ['invoice', 'support_case', 'refund_case'])
+            enable_docling = serializer.validated_data.get('enable_docling', True)  # Default to True
+            processing_options = serializer.validated_data.get('processing_options', {})
             
             # Read file data
             file_data = file.read()
@@ -66,7 +68,11 @@ class DocumentAPIView:
             
             try:
                 result = loop.run_until_complete(
-                    DocumentAPIView().processor.process_document(file_data, filename, str(user_id), schemas)
+                    DocumentAPIView().processor.process_document(
+                        file_data, filename, str(user_id), schemas, 
+                        enable_docling=enable_docling, 
+                        processing_options=processing_options
+                    )
                 )
                 
                 return Response({
@@ -276,46 +282,42 @@ class DocumentAPIView:
                     'error': 'OpenAI client not available'
                 }, status=status.HTTP_503_SERVICE_UNAVAILABLE)
             
-            try:
-                query_embedding = openai_client.generate_embedding(query)
-                
-                # Search in database
-                if not supabase_client.is_available():
-                    return Response({
-                        'error': 'Database not available'
-                    }, status=status.HTTP_503_SERVICE_UNAVAILABLE)
-                
-                client = supabase_client.get_client()
-                
-                # Prepare search parameters
-                search_params = {
-                    'query_embedding': query_embedding,
-                    'match_threshold': similarity_threshold,
-                    'match_count': limit
-                }
-                
-                if document_ids:
-                    search_params['document_ids'] = [str(doc_id) for doc_id in document_ids]
-                
-                if content_type_filter:
-                    search_params['content_type_filter'] = content_type_filter
-                
-                # Execute search
-                response = client.rpc('search_langextract_processed_embeddings', search_params).execute()
-                
-                results = response.data or []
-                
-                serializer = SearchResultSerializer(results, many=True)
-                
+            query_embedding = openai_client.generate_embedding(query)
+            
+            # Search in database
+            if not supabase_client.is_available():
                 return Response({
-                    'success': True,
-                    'data': serializer.data,
-                    'count': len(results),
-                    'query': query
-                })
-                
-            finally:
-                loop.close()
+                    'error': 'Database not available'
+                }, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+            
+            client = supabase_client.get_client()
+            
+            # Prepare search parameters
+            search_params = {
+                'query_embedding': query_embedding,
+                'match_threshold': similarity_threshold,
+                'match_count': limit
+            }
+            
+            if document_ids:
+                search_params['document_ids'] = [str(doc_id) for doc_id in document_ids]
+            
+            if content_type_filter:
+                search_params['content_type_filter'] = content_type_filter
+            
+            # Execute search
+            response = client.rpc('search_langextract_processed_embeddings', search_params).execute()
+            
+            results = response.data or []
+            
+            serializer = SearchResultSerializer(results, many=True)
+            
+            return Response({
+                'success': True,
+                'data': serializer.data,
+                'count': len(results),
+                'query': query
+            })
                 
         except Exception as e:
             logger.error(f"Document search failed: {e}")

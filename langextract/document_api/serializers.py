@@ -17,6 +17,16 @@ class DocumentUploadSerializer(serializers.Serializer):
         default=['invoice', 'support_case', 'refund_case'],
         help_text="List of schemas to apply for metadata extraction"
     )
+    enable_docling = serializers.BooleanField(
+        required=False,
+        default=True,
+        help_text="Enable docling for document processing (default: True for all supported formats)"
+    )
+    processing_options = serializers.JSONField(
+        required=False,
+        default=dict,
+        help_text="Additional processing options"
+    )
     
     def validate_file(self, value):
         """Validate uploaded file."""
